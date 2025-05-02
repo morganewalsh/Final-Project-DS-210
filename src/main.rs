@@ -1,43 +1,43 @@
-use csv::ReaderBuilder;
-use serde::Deserialize;
-use std::error::Error;
-use std::collections::HashMap;
+mod data_structures;
+mod analysis;
+mod data_loader;
+mod helpers;
+mod visualization;
 
-#[derive(Debug, Deserialize)]
-struct CrashData {
-    #[serde(rename = "Distance_From_Nearest_Roadway_Intersection")]
-    distance_from_nearest_roadway_intersection: String,
-}
+use data_loader::load_crash_data;
+use analysis::{
+    group_by_intersections,
+    build_crash_graph,
+    compute_degree_distribution,
+};
+use visualization::{plot_degree_histogram, draw_crash_heatmap};
+use std::error::Error;
 
 fn main() -> Result<(), Box<dyn Error>> {
-    // Load CSV file
-    let file_path = "/opt/app-root/src/Final_Project_210/boston_crashes/crash_data.csv";
-    let mut rdr = ReaderBuilder::new().has_headers(true).from_path(file_path)?;
+    let file_path = "data/boston_crashes.csv";
+    let precision = 0.0005;
+    let max_distance = 0.0010;
 
-    // Initialize a map to store crash counts by intersection
-    let mut intersection_counts: HashMap<String, u32> = HashMap::new();
+    // Load and process crash data
+    let crash_data = load_crash_data(file_path)?;
+    println!("Loaded {} crash records", crash_data.len());
 
-    // Read the CSV data
-    for result in rdr.deserialize() {
-        let record: CrashData = result?;
+    // Build intersection graph
+    let intersections = group_by_intersections(&crash_data, precision);
+    let graph = build_crash_graph(intersections, max_distance);
 
-        if record.distance_from_nearest_roadway_intersection.trim().is_empty() {
-            continue;
-        }
+    println!(
+        "Constructed graph with {} intersections and {} edges",
+        graph.nodes.len(),
+        graph.adjacency.values().map(|v| v.len()).sum::<usize>() / 2
+    );
 
-        let count = intersection_counts.entry(record.distance_from_nearest_roadway_intersection.clone()).or_insert(0);
-        *count += 1;
-    }
+    // Degree distribution visualization
+    let degrees = compute_degree_distribution(&graph);
+    plot_degree_histogram(&degrees, "output/degree_histogram.png")?;
 
-    // Sort intersections by the number of crashes in descending order
-    let mut sorted_intersections: Vec<_> = intersection_counts.into_iter().collect();
-    sorted_intersections.sort_by(|a, b| b.1.cmp(&a.1));
-
-    // Output the top 10 intersections
-    println!("Top 10 intersections with the most crashes:");
-    for (i, (intersection, count)) in sorted_intersections.iter().take(10).enumerate() {
-        println!("{}. {}: {} crashes", i + 1, intersection, count);
-    }
+    // Heatmap visualization
+    draw_crash_heatmap(&crash_data, "output/crash_heatmap.png", 0.001)?;
 
     Ok(())
 }
