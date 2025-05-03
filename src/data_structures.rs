@@ -1,7 +1,32 @@
 use chrono::{NaiveDate, NaiveTime};
 use std::collections::HashMap;
 
-/// A crash record with parsed date/time and validated coordinates
+use chrono::{NaiveDate, NaiveTime};
+
+impl ProcessedCrashRecord {
+    pub fn from_raw(raw: CrashRecord) -> Option<Self> {
+        let (x, y) = (raw.x_coordinate?, raw.y_coordinate?);
+        let date = NaiveDate::parse_from_str(&raw.crash_date, "%Y-%m-%d").ok()?;
+        let time = NaiveTime::parse_from_str(&raw.crash_time, "%H:%M").ok()?;
+
+        Some(Self {
+            crash_number: raw.crash_number,
+            city_town_name: raw.city_town_name,
+            crash_date: date,
+            crash_time: time,
+            number_of_vehicles: raw.number_of_vehicles,
+            total_nonfatal_injuries: raw.total_nonfatal_injuries,
+            total_fatal_injuries: raw.total_fatal_injuries,
+            ambient_light: raw.ambient_light.to_lowercase(),
+            road_surface_condition: raw.road_surface_condition.to_lowercase(),
+            weather_condition: raw.weather_condition.to_lowercase(),
+            at_roadway_intersection: raw.at_roadway_intersection.to_lowercase(),
+            x_coordinate: x,
+            y_coordinate: y,
+        })
+    }
+} 
+
 #[derive(Debug, Clone)]
 pub struct ProcessedCrashRecord {
     pub crash_number: String,
