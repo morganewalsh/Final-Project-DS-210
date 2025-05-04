@@ -12,8 +12,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now(); //tracking run time 
 
     let file_path = "data/crash_data.csv";
-    let bin_precision = 0.0005; 
-    let max_connection_dist = 0.0010; //parameteres for graphing 
+    let bin_precision = 25.0; 
+    let max_connection_dist = 100.0; //parameteres for graphing 
 
     let crash_data = load_crash_data(file_path)?;
     println!("Loaded {} crash records.", crash_data.len());
