@@ -49,3 +49,40 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+
+
+#[cfg(test)]
+mod tests {
+    use chrono::{NaiveDate, NaiveTime};
+    use crate::data_structures::{CrashRecord, ProcessedCrashRecord};
+    use crate::analysis::{group_by_intersections, build_crash_graph};
+
+    #[test]
+    fn test_struct_population() {
+        let raw = CrashRecord { //populated with first row of crash data 
+            crash_number: "4923964".to_string(),
+            city_town_name: "BOSTON".to_string(),
+            crash_date: "01-Jan-2021".to_string(),
+            crash_time: "2:13 AM".to_string(),
+            number_of_vehicles: Some(2.0),
+            total_nonfatal_injuries: Some(0.0),
+            total_fatal_injuries: Some(0.0),
+            ambient_light: "Dark - lighted roadway".to_string(),
+            road_surface_condition: "Dry".to_string(),
+            weather_condition: "Clear".to_string(),
+            at_roadway_intersection: "HUNTINGTON AVENUE / WAIT STREET".to_string(),
+            x_coordinate: Some(232459.5312),
+            y_coordinate: Some(898185.625),
+        };
+
+        let processed = ProcessedCrashRecord::from_raw(raw);
+        assert!(processed.is_some());
+        let crash = processed.unwrap();
+        assert_eq!(crash.city_town_name, "BOSTON");
+        assert_eq!(crash.x_coordinate, 232459.5312);
+        assert_eq!(crash.crash_date, NaiveDate::from_ymd_opt(2021, 1, 1).unwrap());
+    }
+}
+
+
