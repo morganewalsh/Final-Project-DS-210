@@ -52,3 +52,47 @@ pub fn build_crash_graph(
 
     CrashGraph { nodes, adjacency }
 }
+
+
+pub fn most_common_intersection_name(crashes: &[ProcessedCrashRecord]) -> String {
+    let mut count_map = HashMap::new();
+
+    for crash in crashes {
+        let name = crash.at_roadway_intersection.trim().to_lowercase();
+        if !name.is_empty() && name != "unknown" {
+            *count_map.entry(name).or_insert(0) += 1;
+        }
+    }
+
+    count_map
+        .into_iter()
+        .max_by_key(|(_, count)| *count)
+        .map(|(name, _)| name)
+        .unwrap_or_else(|| "Unnamed intersection".to_string())
+}
+
+
+pub fn top_n_high_degree_nodes(graph: &CrashGraph, n: usize) -> Vec<(usize, String, f64, f64)> {
+    let mut node_degrees: Vec<(&IntersectionNode, usize)> = graph
+        .nodes
+        .iter()
+        .map(|node| {
+            let degree = graph
+                .adjacency
+                .get(&node.id)
+                .map_or(0, |neighbors| neighbors.len());
+            (node, degree)
+        })
+        .collect();
+
+    node_degrees.sort_by(|a, b| b.1.cmp(&a.1));
+
+    node_degrees
+        .into_iter()
+        .take(n)
+        .map(|(node, degree)| {
+            let name = most_common_intersection_name(&node.crashes);
+            (degree, name, node.x, node.y)
+        })
+        .collect()
+}
