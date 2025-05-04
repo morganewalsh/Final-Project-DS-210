@@ -3,8 +3,8 @@ use serde::Deserialize;
 
 ///this module saves all the structs for this project as well as the crash record processing function
 
-
-#[derive(Debug, Deserialize)]
+//CrashRecord represents one row in crash_data.csv
+#[derive(Debug, Deserialize)] //raw CSV record format stored in struct 
 pub struct CrashRecord {
     pub crash_number: String,
     pub crash_date: String,
@@ -18,7 +18,7 @@ pub struct CrashRecord {
 
 
 #[derive(Debug, Clone)]
-pub struct ProcessedCrashRecord {
+pub struct ProcessedCrashRecord { //cleaned and parse version of CrashRecord 
     pub crash_number: String,
     pub crash_date: NaiveDate,
     pub crash_time: NaiveTime,
@@ -29,12 +29,12 @@ pub struct ProcessedCrashRecord {
     pub y_coordinate: f64,
 }
 
-impl ProcessedCrashRecord {
+impl ProcessedCrashRecord { // Converts a raw crash record to a processed format
     pub fn from_raw(raw: CrashRecord) -> Option<Self> {
         let (x, y) = match (raw.x_coordinate, raw.y_coordinate) {
             (Some(x), Some(y)) => (x, y),
             _ => {
-                //eprintln!("Skipping: missing coordinates");
+                //eprintln!("Skipping: missing coordinates"); // Skips records with invalid/missing date
                 return None;
             }
         };
@@ -70,7 +70,7 @@ impl ProcessedCrashRecord {
 }
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone)] // Represents a spatial cluster of crash records -- each intersection that crashes occured at 
 pub struct IntersectionNode {
     pub id: usize,
     pub x: f64,
@@ -78,7 +78,7 @@ pub struct IntersectionNode {
     pub crashes: Vec<ProcessedCrashRecord>,
 }
 
-#[derive(Debug)]
+#[derive(Debug)] //// Represents the full graph of intersection nodes and connections 
 pub struct CrashGraph {
     pub nodes: Vec<IntersectionNode>,
     pub adjacency: std::collections::HashMap<usize, Vec<usize>>,

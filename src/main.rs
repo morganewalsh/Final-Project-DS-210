@@ -13,30 +13,36 @@ use visualization::plot_degree_histogram;
 use crate::data_structures::{CrashGraph, IntersectionNode, ProcessedCrashRecord};
 
 
+/// Main function in crash data analysis
+// Constructs graph of intersection nodes and highlights top connected and most severe intersections
+
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now(); //tracking run time 
 
-    let file_path = "data/crash_data.csv";
-    let bin_precision = 25.0; 
-    let max_connection_dist = 10.0; //parameteres for graphing 
+    let file_path = "data/crash_data.csv"; /// Loads and processes crash records
+    let bin_precision = 25.0;  //rounding precision
+    let max_connection_dist = 10.0; //parameteres for max distance to connect nodes 
 
     let crash_data = load_crash_data(file_path)?;
-    println!("Loaded {} crash records.", crash_data.len());
+    println!("Loaded {} crash records.", crash_data.len()); //loading data 
 
+    //building graph 
     let intersections = group_by_intersections(&crash_data, bin_precision);
-    let graph = build_crashgraph(intersections.clone(), max_connection_dist);
+    let graph = build_crashgraph(intersections.clone(), max_connection_dist); /// Constructs a graph of intersection nodes
 
     println!(
         "Built graph with {} intersections & {} edges.",
         graph.nodes.len(),
-        graph.adjacency.values().map(|v| v.len()).sum::<usize>() / 2
+        graph.adjacency.values().map(|v| v.len()).sum::<usize>() / 2 //deals with undirected edges 
     );
 
+    //degree counts 
     let degrees = compute_degree_distribution(&graph);
     println!("Computed degrees for {} nodes", degrees.len());
 
     plot_degree_histogram(&degrees, "histogram_output/degree_histogram.png")?;
 
+    //print top 5 intersections with most crashes 
     let top_nodes = top_n_high_degree_nodes(&graph, 5);
     println!("Top 5 highest-degree intersections:");
     for (degree, name, x, y) in top_nodes {
@@ -49,17 +55,18 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     }
     
+    //prints top 5 intersections with the most severe crashes 
     let severe_crashes: Vec<_> = crash_data.iter().filter(|crash| is_severe(crash)).cloned().collect();
     println!("Filtered to {} severe crashes", severe_crashes.len());
     let severe_intersections = group_by_intersections(&severe_crashes, bin_precision);
 
     let severe_graph = build_crashgraph(severe_intersections.clone(), max_connection_dist);
-    print_top_severe_intersections(&severe_intersections, 5);
+    print_top_severe_intersections(&severe_intersections, 5); //generating severe graph 
 
     let severe_degrees = compute_degree_distribution(&severe_graph);
     plot_degree_histogram(&severe_degrees, "histogram_output/severe_crash_degree_histogram.png")?;
 
-    println!("Duration {:.2?}", start.elapsed());
+    println!("Duration {:.2?}", start.elapsed()); //final time output 
 
     Ok(())
 }
