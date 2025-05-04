@@ -1,21 +1,16 @@
-use crate::data_structures::{ProcessedCrashRecord, IntersectionNode};
-use crate::helpers::round_coord;
-use std::collections::HashMap,
-use crate::data_structures::{CrashGraph, ProcessedCrashRecord, IntersectionNode};
+use crate::data_structures::{ProcessedCrashRecord, IntersectionNode, CrashGraph};
+use std::collections::HashMap;
 
-
-
-///intersections that have the most crashes 
 pub fn group_by_intersections(
     data: &[ProcessedCrashRecord],
     precision: f64,
 ) -> Vec<IntersectionNode> {
-    let mut grouped: HashMap<(f64, f64), Vec<ProcessedCrashRecord>> = HashMap::new();
+    let mut grouped: HashMap<(i32, i32), Vec<ProcessedCrashRecord>> = HashMap::new();
 
     for crash in data {
         let key = (
-            round_coord(crash.x_coordinate, precision),
-            round_coord(crash.y_coordinate, precision),
+            (crash.x_coordinate / precision).round() as i32,
+            (crash.y_coordinate / precision).round() as i32,
         );
         grouped.entry(key).or_default().push(crash.clone());
     }
@@ -23,23 +18,28 @@ pub fn group_by_intersections(
     grouped
         .into_iter()
         .enumerate()
-        .map(|(id, ((x, y), crashes))| IntersectionNode { id, x, y, crashes })
+        .map(|(id, ((x, y), crashes))| IntersectionNode {
+            id,
+            x: x as f64,
+            y: y as f64,
+            crashes,
+        })
         .collect()
 }
 
-pub fn crash_merge(value: f64, precision: f64) -> f64 {
-    (value / precision).round() * precision
+pub fn euclidean_distance(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 {
+    ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt()
 }
 
-pub fn node_connection(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 {
-    ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt()
+pub fn compute_degree_distribution(graph: &CrashGraph) -> HashMap<usize, usize> {
+    graph.adjacency.iter().map(|(&id, neighbors)| (id, neighbors.len())).collect()
 }
 
 pub fn build_crash_graph(
     nodes: Vec<IntersectionNode>,
     max_distance: f64,
 ) -> CrashGraph {
-    let mut adjacency = HashMap::new();
+    let mut adjacency: HashMap<usize, Vec<usize>> = HashMap::new();
 
     for (i, a) in nodes.iter().enumerate() {
         for (j, b) in nodes.iter().enumerate().skip(i + 1) {

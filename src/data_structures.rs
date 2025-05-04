@@ -1,5 +1,5 @@
 use chrono::{NaiveDate, NaiveTime};
-use std::collections::HashMap;
+use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct CrashRecord {
@@ -59,6 +59,21 @@ impl ProcessedCrashRecord {
         })
     }
 } 
+
+
+#[derive(Debug, Clone)]
+pub struct IntersectionNode {
+    pub id: usize,
+    pub x: f64,
+    pub y: f64,
+    pub crashes: Vec<ProcessedCrashRecord>,
+}
+
+#[derive(Debug)]
+pub struct CrashGraph {
+    pub nodes: Vec<IntersectionNode>,
+    pub adjacency: std::collections::HashMap<usize, Vec<usize>>,
+}
 
 
 
