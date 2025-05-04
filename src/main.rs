@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let file_path = "data/crash_data.csv";
     let bin_precision = 25.0; 
-    let max_connection_dist = 100.0; //parameteres for graphing 
+    let max_connection_dist = 10.0; //parameteres for graphing 
 
     let crash_data = load_crash_data(file_path)?;
     println!("Loaded {} crash records.", crash_data.len());
@@ -28,6 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     let degrees = compute_degree_distribution(&graph);
+    println!("Computed degrees for {} nodes", degrees.len());
     plot_degree_histogram(&degrees, "histogram_output/degree_histogram.png")?;
 
     println!("Duration {:.2?}", start.elapsed());
