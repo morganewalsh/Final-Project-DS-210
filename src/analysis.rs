@@ -1,6 +1,9 @@
 use crate::data_structures::{ProcessedCrashRecord, IntersectionNode, CrashGraph};
 use std::collections::HashMap;
 
+
+//this module is the backbone of grouping data, building graphs, and ranking the intersection clusters 
+
 pub fn group_by_intersections(
     data: &[ProcessedCrashRecord],
     precision: f64,
@@ -28,7 +31,7 @@ pub fn group_by_intersections(
 }
 
 
-pub fn build_crash_graph(
+pub fn build_crashgraph(
     nodes: Vec<IntersectionNode>,
     max_distance: f64,
 ) -> CrashGraph {
@@ -36,7 +39,7 @@ pub fn build_crash_graph(
 
     for (i, a) in nodes.iter().enumerate() {
         for b in nodes.iter().skip(i + 1) {
-            if euclidean_distance(a.x, a.y, b.x, b.y) <= max_distance {
+            if edistance(a.x, a.y, b.x, b.y) <= max_distance {
                 adjacency.entry(a.id).or_default().push(b.id);
                 adjacency.entry(b.id).or_default().push(a.id);
             }
@@ -47,7 +50,7 @@ pub fn build_crash_graph(
 }
 
 
-pub fn most_common_intersection_name(crashes: &[ProcessedCrashRecord]) -> String {
+pub fn most_common_name(crashes: &[ProcessedCrashRecord]) -> String {
     let mut count_map = HashMap::new();
 
     for crash in crashes {
@@ -84,7 +87,7 @@ pub fn top_n_high_degree_nodes(graph: &CrashGraph, n: usize) -> Vec<(usize, Stri
         .into_iter()
         .take(n)
         .map(|(node, degree)| {
-            let name = most_common_intersection_name(&node.crashes);
+            let name = most_common_name(&node.crashes);
             (degree, name, node.x, node.y)
         })
         .collect()
@@ -96,7 +99,7 @@ pub fn is_severe(crash: &ProcessedCrashRecord) -> bool {
         || crash.total_nonfatal_injuries.unwrap_or(0.0) > 0.0
 }
 
-pub fn euclidean_distance(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 {
+pub fn edistance(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 {
     ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt()
 }
 

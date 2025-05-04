@@ -1,12 +1,14 @@
 use plotters::prelude::*;
 use std::collections::HashMap;
 
+///this module holds the functions that populate the histograms from degree map and crash severity
+
 pub fn plot_degree_histogram(
     degree_map: &HashMap<usize, usize>,
     output_path: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if degree_map.is_empty() {
-        eprintln!("⚠️ No degree data to plot.");
+        //eprintln!("No degree data to plot.");
         return Ok(());
     }
 
@@ -20,7 +22,7 @@ pub fn plot_degree_histogram(
     sorted.sort_by_key(|&(deg, _)| deg);
 
     if sorted.is_empty() {
-        eprintln!("⚠️ Degree frequency list is empty.");
+        //eprintln!("Degree frequency list is empty.");
         return Ok(());
     }
 
@@ -30,10 +32,10 @@ pub fn plot_degree_histogram(
     let root = BitMapBackend::new(output_path, (800, 600)).into_drawing_area();
     root.fill(&WHITE)?;
 
-    println!("Degree Frequency Distribution:");
-    for (deg, count) in &sorted {
-        println!("Degree {}: {} nodes", deg, count);
-    }
+    //println!("Degree Frequency Distribution:");
+    // for (deg, count) in &sorted {
+    //     println!("Degree {}: {} nodes", deg, count);
+    //}
 
     
     let mut chart = ChartBuilder::on(&root)
