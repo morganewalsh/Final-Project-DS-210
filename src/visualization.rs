@@ -57,6 +57,6 @@ pub fn plot_degree_histogram(
     )?;
 
     root.present()?; 
-    println!("✅ Histogram saved to {}", output_path);
+    println!("Histogram saved to {}", output_path);
     Ok(())
 }

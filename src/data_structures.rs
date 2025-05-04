@@ -56,7 +56,7 @@ impl ProcessedCrashRecord {
                 None
             })?;
 
-        // Parse time like "2:13 AM"
+    
         let time = NaiveTime::parse_from_str(&raw.crash_time.trim(), "%I:%M %p").ok()
             .or_else(|| {
                 eprintln!("Skipping: invalid time '{}'", raw.crash_time);
