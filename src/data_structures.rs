@@ -38,9 +38,30 @@ pub struct ProcessedCrashRecord {
 
 impl ProcessedCrashRecord {
     pub fn from_raw(raw: CrashRecord) -> Option<Self> {
-        let (x, y) = (raw.x_coordinate?, raw.y_coordinate?);
-        let date = NaiveDate::parse_from_str(&raw.crash_date, "%Y-%m-%d").ok()?;
-        let time = NaiveTime::parse_from_str(&raw.crash_time, "%H:%M").ok()?;
+        let (x, y) = match (raw.x_coordinate, raw.y_coordinate) {
+            (Some(x), Some(y)) => (x, y),
+            _ => {
+                eprintln!("Skipping: missing coordinates");
+                return None;
+            }
+        };
+
+        // Clean up and parse the date
+        let date_str = raw.crash_date.trim();
+        let date = NaiveDate::parse_from_str(date_str, "%d-%b-%Y")
+            .or_else(|_| NaiveDate::parse_from_str(date_str, "%d-%B-%Y"))
+            .ok()
+            .or_else(|| {
+                eprintln!("Skipping: invalid date '{}'", date_str);
+                None
+            })?;
+
+        // Parse time like "2:13 AM"
+        let time = NaiveTime::parse_from_str(&raw.crash_time.trim(), "%I:%M %p").ok()
+            .or_else(|| {
+                eprintln!("Skipping: invalid time '{}'", raw.crash_time);
+                None
+            })?;
 
         Some(Self {
             crash_number: raw.crash_number,
@@ -58,7 +79,7 @@ impl ProcessedCrashRecord {
             y_coordinate: y,
         })
     }
-} 
+}
 
 
 #[derive(Debug, Clone)]

@@ -11,7 +11,7 @@ use std::error::Error;
 fn main() -> Result<(), Box<dyn Error>> {
     let start = Instant::now(); //tracking run time 
 
-    let file_path = "data/boston_crashes.csv";
+    let file_path = "data/crash_data.csv";
     let bin_precision = 0.0005; 
     let max_connection_dist = 0.0010; //parameteres for graphing 
 
@@ -28,7 +28,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     );
 
     let degrees = compute_degree_distribution(&graph);
-    plot_degree_histogram(&degrees, "output/degree_histogram_simple.png")?;
+    plot_degree_histogram(&degrees, "histogram_output/degree_histogram.png")?;
 
     println!("Duration {:.2?}", start.elapsed());
 

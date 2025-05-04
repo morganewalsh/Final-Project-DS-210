@@ -42,7 +42,7 @@ pub fn build_crash_graph(
     let mut adjacency: HashMap<usize, Vec<usize>> = HashMap::new();
 
     for (i, a) in nodes.iter().enumerate() {
-        for (j, b) in nodes.iter().enumerate().skip(i + 1) {
+        for b in nodes.iter().skip(i + 1) {
             if euclidean_distance(a.x, a.y, b.x, b.y) <= max_distance {
                 adjacency.entry(a.id).or_default().push(b.id);
                 adjacency.entry(b.id).or_default().push(a.id);

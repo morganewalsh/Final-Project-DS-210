@@ -1,10 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::path::Path;
-use chrono::{NaiveDate, NaiveTime};
 use csv::Reader;
-use serde::Deserialize;
-
 use crate::data_structures::{CrashRecord, ProcessedCrashRecord};
 
 pub fn load_crash_data<P: AsRef<Path>>(file_path: P) -> Result<Vec<ProcessedCrashRecord>, Box<dyn Error>> {
