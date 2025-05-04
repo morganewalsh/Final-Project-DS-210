@@ -27,13 +27,6 @@ pub fn group_by_intersections(
         .collect()
 }
 
-pub fn euclidean_distance(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 {
-    ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt()
-}
-
-pub fn compute_degree_distribution(graph: &CrashGraph) -> HashMap<usize, usize> {
-    graph.adjacency.iter().map(|(&id, neighbors)| (id, neighbors.len())).collect()
-}
 
 pub fn build_crash_graph(
     nodes: Vec<IntersectionNode>,
@@ -95,4 +88,57 @@ pub fn top_n_high_degree_nodes(graph: &CrashGraph, n: usize) -> Vec<(usize, Stri
             (degree, name, node.x, node.y)
         })
         .collect()
+}
+
+
+pub fn is_severe(crash: &ProcessedCrashRecord) -> bool {
+    crash.total_fatal_injuries.unwrap_or(0.0) > 0.0
+        || crash.total_nonfatal_injuries.unwrap_or(0.0) > 0.0
+}
+
+pub fn euclidean_distance(x1: f64, y1: f64, x2: f64, y2: f64) -> f64 {
+    ((x1 - x2).powi(2) + (y1 - y2).powi(2)).sqrt()
+}
+
+pub fn compute_degree_distribution(graph: &CrashGraph) -> HashMap<usize, usize> {
+    graph.adjacency.iter().map(|(&id, neighbors)| (id, neighbors.len())).collect()
+} 
+
+
+pub fn print_top_severe_intersections(nodes: &[IntersectionNode], n: usize) {
+    let mut nodes_by_severity: Vec<_> = nodes
+        .iter()
+        .map(|node| {
+            let severe_count = node
+                .crashes
+                .iter()
+                .filter(|crash| {
+                    crash.total_fatal_injuries.unwrap_or(0.0) > 0.0
+                        || crash.total_nonfatal_injuries.unwrap_or(0.0) > 0.0
+                })
+                .count();
+            (node, severe_count)
+        })
+        .filter(|(_, count)| *count > 0)
+        .collect();
+
+    nodes_by_severity.sort_by_key(|&(_, count)| std::cmp::Reverse(count));
+
+    println!("Top {} intersections with most severe crashes:", n);
+    for (i, (node, count)) in nodes_by_severity.iter().take(n).enumerate() {
+        let name = node
+            .crashes
+            .first()
+            .map(|crash| crash.at_roadway_intersection.clone())
+            .unwrap_or("unknown".into());
+
+        println!(
+            "{}. {} (Severe crashes: {}) at approx. coords ({:.2}, {:.2})",
+            i + 1,
+            name,
+            count,
+            node.x,
+            node.y
+        );
+    }
 }

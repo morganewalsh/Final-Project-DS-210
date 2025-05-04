@@ -4,7 +4,7 @@ mod data_loader;
 mod visualization;
 use std::time::Instant;
 use data_loader::load_crash_data;
-use analysis::{group_by_intersections, build_crash_graph, compute_degree_distribution, top_n_high_degree_nodes,};
+use analysis::{group_by_intersections, build_crash_graph, compute_degree_distribution, print_top_severe_intersections, top_n_high_degree_nodes, is_severe};
 use visualization::plot_degree_histogram;
 use std::error::Error;
 use crate::data_structures::{CrashGraph, IntersectionNode, ProcessedCrashRecord};
@@ -43,7 +43,18 @@ fn main() -> Result<(), Box<dyn Error>> {
             name
         };
         println!("{} (Degree: {}) at approx. coords ({:.2}, {:.2})", label, degree, x, y);
+
     }
+    
+    let severe_crashes: Vec<_> = crash_data.iter().filter(|crash| is_severe(crash)).cloned().collect();
+    println!("Filtered to {} severe crashes", severe_crashes.len());
+    let severe_intersections = group_by_intersections(&severe_crashes, bin_precision);
+
+    let severe_graph = build_crash_graph(severe_intersections.clone(), max_connection_dist);
+    print_top_severe_intersections(&severe_intersections, 5);
+
+    let severe_degrees = compute_degree_distribution(&severe_graph);
+    plot_degree_histogram(&severe_degrees, "histogram_output/severe_crash_degree_histogram.png")?;
 
     println!("Duration {:.2?}", start.elapsed());
 
