@@ -83,6 +83,53 @@ mod tests {
         assert_eq!(crash.x_coordinate, 232459.5312);
         assert_eq!(crash.crash_date, NaiveDate::from_ymd_opt(2021, 1, 1).unwrap());
     }
+
+
+    #[test]
+    fn test_grouping_and_graph_edges() {
+        use crate::data_structures::ProcessedCrashRecord;
+
+        let fakecrashes = vec![
+            ProcessedCrashRecord {
+                crash_number: "1".to_string(),
+                city_town_name: "BOSTON".to_string(),
+                crash_date: NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
+                crash_time: NaiveTime::from_hms_opt(8, 0, 0).unwrap(),
+                number_of_vehicles: Some(1.0),
+                total_nonfatal_injuries: None,
+                total_fatal_injuries: None,
+                ambient_light: "daylight".to_string(),
+                road_surface_condition: "dry".to_string(),
+                weather_condition: "clear".to_string(),
+                at_roadway_intersection: "HUNTINGTON AVENUE / WAIT STREET".to_string(),
+                x_coordinate: 2000.0,
+                y_coordinate: 8000.0,
+            },
+            ProcessedCrashRecord { x_coordinate: 2004.0, y_coordinate: 8004.0, ..crate::data_structures::ProcessedCrashRecord {
+                crash_number: "2".to_string(),
+                city_town_name: "BOSTON".to_string(),
+                crash_date: NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
+                crash_time: NaiveTime::from_hms_opt(9, 0, 0).unwrap(),
+                number_of_vehicles: Some(1.0),
+                total_nonfatal_injuries: None,
+                total_fatal_injuries: None,
+                ambient_light: "daylight".to_string(),
+                road_surface_condition: "dry".to_string(),
+                weather_condition: "clear".to_string(),
+                at_roadway_intersection: "WAIT STREET / HUNTINGTON AVENUE".to_string(),
+                x_coordinate: 0.0, // overwritten
+                y_coordinate: 0.0, // overwritten
+            }},
+        ];
+
+        let intersections = group_by_intersections(&fakecrashes, 10.0);
+        assert_eq!(intersections.len(), 1); // Should group due to bin size
+
+        let graph = build_crash_graph(intersections, 10.0);
+        assert_eq!(graph.nodes.len(), 1);
+        assert_eq!(graph.adjacency.len(), 0); // Only one node, no edges
+    }
 }
+
 
 
